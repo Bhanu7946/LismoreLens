@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Upload Images</title>
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <style>
+        /* Container for the sidebar and main content */
+        .container {
+            display: flex;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Sidebar styling */
+        .sidebar {
+            width: 30%;
+            background-color: #7caeef;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            height: 100%;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar img {
+            width: 80%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            width: 100%;
+            text-align: center;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #555;
+        }
+
+        /* Main content styling */
+        .main-content {
+            margin-left: 30%;
+            padding: 20px;
+            width: 70%;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Home Button on the top-left */
+        .home-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+
+        .home-btn {
+            background-color: #333;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .home-btn:hover {
+            background-color: #555;
+        }
+
+        /* Profile Button with Dropdown placed at the top-right */
+        .profile-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .profile-btn {
+            background-color: #333;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .profile-btn:hover {
+            background-color: #555;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #f1f1f1;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            border-radius: 5px;
+        }
+
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #ddd;
+        }
+
+        .profile-container:hover .dropdown-content {
+            display: block;
+        }
+
+        #image-preview {
+            display: none;
+            width: 300px;
+            height: 200px;
+            object-fit: cover;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        
+        <a href="admin_panel.html">Uploads</a>
+        <a href="bookings.html">Bookings</a>
+        <a href="calender.html">Calendar</a>
+        <img src="assets/img/Logo1.png" alt="Logo"> <!-- Add your logo here -->
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Home Button on the top-left -->
+        <div class="home-container">
+            <a href="index.html">
+                <button class="home-btn">Home</button>
+            </a>
+        </div>
+        
+        <!-- Profile Button with Dropdown placed at the top-right -->
+        <div class="profile-container">
+            <button class="profile-btn">View Profile</button>
+            <div class="dropdown-content">
+                <a href="#">View</a>
+                <a href="#">Settings</a>
+                <a href="login.html">Logout</a>
+            </div>
+        </div>
+
+        <!-- Main Form -->
+        <h2>Upload Images to Website</h2>
+        <form action="assets/php/Upload.php" method="POST" enctype="multipart/form-data">
+            <label for="category">Select Category:</label>
+            <select name="category" id="category" required>
+                <option value="Nature">Nature</option>
+                <option value="People">People</option>
+                <option value="Wedding">Wedding</option>
+                <option value="Portraits">Portraits</option>
+                <option value="Special Events">Special Events</option>
+                <option value="Travel">Travel</option>
+            </select>
+
+            <label for="title">Title:</label>
+            <input type="text" name="title" id="title" required>
+
+            <label for="description">Description:</label>
+            <textarea name="description" id="description" rows="4" required></textarea>
+
+            <label for="image">Choose Image:</label>
+            <input type="file" name="image" id="image" accept="image/*" required onchange="previewImage(event)">
+
+            <!-- Preview Image -->
+            <img id="image-preview" src="#" alt="Image Preview">
+
+            <button type="submit" name="submit">Upload Image</button>
+        </form>
+    </div>
+
+    <script>
+        // Function to preview the selected image
+        function previewImage(event) {
+            const image = document.getElementById('image-preview');
+            const reader = new FileReader();
+            reader.onload = function() {
+                image.src = reader.result;
+                image.style.display = 'block'; // Show the preview image
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    </script>
+</body>
+</html>

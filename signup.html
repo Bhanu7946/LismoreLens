@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signup Page</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-auth.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    .form-container {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+    }
+
+    input[type="text"], input[type="email"], input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0 20px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    .google-btn {
+      background-color: #db4437;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .google-btn img {
+      width: 20px;
+      margin-right: 10px;
+    }
+
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+<div class="form-container">
+  <h2>Signup Form</h2>
+
+  <!-- Signup form fields -->
+  <label for="name">Full Name:</label>
+  <input type="text" id="name" placeholder="Enter your full name">
+
+  <label for="username">Username:</label>
+  <input type="text" id="username" placeholder="Enter your username">
+
+  <label for="email">Email:</label>
+  <input type="email" id="email" placeholder="Enter your email">
+
+  <label for="password">Password (min 8 characters):</label>
+  <input type="password" id="password" placeholder="Enter your password">
+
+  <div class="error" id="error-message"></div>
+
+  <button onclick="signup()">Sign Up</button>
+
+  <hr>
+  <!-- Google Sign Up Button with Icon -->
+  <button id="googleSignupBtn" class="google-btn">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png" alt="Google Icon">
+    Sign Up with Google
+  </button>
+</div>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.8/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.6.8/firebase-auth.js";
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyB-0PAngJBVypUAaWuyT5LkWx3UTsSj2DU",
+    authDomain: "signupformproject-95ffb.firebaseapp.com",
+    projectId: "signupformproject-95ffb",
+    storageBucket: "signupformproject-95ffb.appspot.com",
+    messagingSenderId: "723126621",
+    appId: "1:723126621:web:7e940da4739411a1ea00b4",
+    measurementId: "G-9V48N8TDZ8"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // Regular Signup (Custom form validation)
+  function signup() {
+    const name = document.getElementById('name').value;
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const errorMessage = document.getElementById('error-message');
+
+    errorMessage.textContent = ''; // Clear any previous error messages
+
+    // Password validation
+    if (password.length < 8) {
+      errorMessage.textContent = 'Password must be at least 8 characters long.';
+      return;
+    }
+
+    // Firebase Email/Password Signup
+    auth.createUserWithEmailAndPassword(email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+
+        // Save additional user info like name and username
+        console.log('User signed up:', { name, username, email });
+        window.localStorage.setItem('userName', name);
+
+        // Redirect to index.html after signup
+        window.location.href = 'index.html';
+      })
+      .catch((error) => {
+        errorMessage.textContent = error.message;
+      });
+  }
+
+  // Google Sign-In
+  const googleSignupBtn = document.getElementById('googleSignupBtn');
+  googleSignupBtn.addEventListener('click', () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider)
+      .then(result => {
+        // Google Access Token and User Info
+        const user = result.user;
+
+        // Send user data to backend (save_user.php) to store in MySQL database
+        fetch('http://localhost/PhotoTem/save_user.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({
+            google_id: user.uid,
+            name: user.displayName,
+            email: user.email,
+            profile_pic: user.photoURL
+          })
+        })
+        .then(response => response.text())
+        .then(data => {
+          console.log(data); // Shows whether the user data was saved successfully
+          // Save profile data in localStorage and redirect
+          window.localStorage.setItem('profilePic', user.photoURL);
+          window.localStorage.setItem('userName', user.displayName);
+          window.location.href = 'index.html';
+        })
+        .catch(error => {
+          console.error('Error during Google signup', error);
+        });
+      })
+      .catch(error => {
+        console.error('Error during Google signup', error);
+      });
+  });
+</script>
+
+</body>
+</html>

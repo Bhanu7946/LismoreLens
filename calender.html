@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Calendar</title>
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <style>
+        /* Sidebar and Main Content styling */
+        .container {
+            display: flex;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        .sidebar {
+            width: 30%;
+            background-color: #7caeef;
+            color: white;
+            padding: 20px;
+            position: fixed;
+            height: 100%;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .sidebar img {
+            width: 80%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            margin-bottom: 10px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-left: 30%;
+            padding: 20px;
+            background-color: #f4f4f4;
+            width: 70%;
+        }
+
+        /* Calendar header styling */
+        #calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #month-name {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .nav-button {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .nav-button:hover {
+            background-color: #555;
+        }
+
+        /* Calendar grid */
+        #calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            width: 100%;
+        }
+
+        .day {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            border-radius: 5px;
+        }
+
+        .day:hover {
+            background-color: #f0f0f0;
+        }
+
+        .current-day {
+            background-color: #ffeb3b;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+
+        .task-list {
+            margin-top: 10px;
+        }
+
+        .done-button {
+            background-color: green;
+            color: white;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+            display: none;
+        }
+
+        /* Task popup styling */
+        .task-popup {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a href="admin_panel.html">Uploads</a>
+        <a href="bookings.html">Bookings</a>
+        <a href="calendar.html">Calendar</a>
+        <img src="assets/img/Logo1.png" alt="Logo"> <!-- Add your logo here -->
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div id="calendar-header">
+            <button id="prev-month" class="nav-button">Previous</button>
+            <span id="month-name"></span>
+            <button id="next-month" class="nav-button">Next</button>
+        </div>
+        <div id="calendar"></div>
+    </div>
+
+    <!-- Task Popup -->
+    <div id="task-popup" class="task-popup">
+        <h4>Add Task for <span id="selected-date"></span></h4>
+        <input type="text" id="task-input" placeholder="Enter task" />
+        <button id="save-task">Save Task</button>
+    </div>
+
+    <script>
+        const calendar = document.getElementById('calendar');
+        const taskPopup = document.getElementById('task-popup');
+        const selectedDateElement = document.getElementById('selected-date');
+        const taskInput = document.getElementById('task-input');
+        let selectedDay = null;
+
+        const today = new Date();
+        let currentMonth = today.getMonth();
+        let currentYear = today.getFullYear();
+        const currentDate = today.getDate();
+
+        const monthNames = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+
+        document.getElementById('prev-month').addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11; // December
+                currentYear--;
+            }
+            updateCalendar();
+        });
+
+        document.getElementById('next-month').addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0; // January
+                currentYear++;
+            }
+            updateCalendar();
+        });
+
+        function daysInMonth(month, year) {
+            return new Date(year, month + 1, 0).getDate();
+        }
+
+        function generateCalendar() {
+            calendar.innerHTML = ''; // Clear existing calendar
+
+            const days = daysInMonth(currentMonth, currentYear);
+
+            for (let day = 1; day <= days; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.classList.add('day');
+                dayElement.innerHTML = day;
+                
+                // Highlight current day only if it's the current month and year
+                if (day === currentDate && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
+                    dayElement.classList.add('current-day');
+                }
+
+                dayElement.addEventListener('click', () => openTaskPopup(dayElement, day));
+                calendar.appendChild(dayElement);
+            }
+        }
+
+        function openTaskPopup(dayElement, day) {
+            selectedDay = dayElement;
+            selectedDateElement.innerHTML = `${monthNames[currentMonth]} ${day}, ${currentYear}`;
+            taskPopup.style.display = 'block';
+            taskPopup.style.left = `${dayElement.offsetLeft}px`;
+            taskPopup.style.top = `${dayElement.offsetTop + dayElement.offsetHeight}px`;
+        }
+
+        document.getElementById('save-task').addEventListener('click', () => {
+            if (taskInput.value !== '') {
+                const taskList = selectedDay.querySelector('.task-list') || document.createElement('div');
+                taskList.classList.add('task-list');
+                taskList.innerHTML = `<span>${taskInput.value}</span> <button class="done-button">Done</button>`;
+                selectedDay.appendChild(taskList);
+
+                const doneButton = taskList.querySelector('.done-button');
+                doneButton.style.display = 'inline';
+                doneButton.addEventListener('click', () => {
+                    taskList.style.textDecoration = 'line-through';
+                    doneButton.style.display = 'none';
+                });
+
+                taskPopup.style.display = 'none';
+                taskInput.value = '';
+            }
+        });
+
+        function updateCalendar() {
+            document.getElementById('month-name').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            generateCalendar();
+        }
+
+        updateCalendar(); // Initialize the calendar on page load
+    </script>
+</body>
+</html>
